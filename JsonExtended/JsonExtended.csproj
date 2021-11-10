@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>Hamed Fathi</Authors>
+    <Company />
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <Version>1.0.0</Version>
+    <PackageProjectUrl>https://github.com/HamedFathi/JsonExtended</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/HamedFathi/JsonExtended</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="5.0.2" />
+  </ItemGroup>
+
+</Project>
