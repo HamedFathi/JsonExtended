@@ -5,7 +5,7 @@
     <Authors>Hamed Fathi</Authors>
     <Company />
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <Version>1.1.0</Version>
+    <Version>2.0.0</Version>
     <LangVersion>latest</LangVersion>
     <PackageProjectUrl>https://github.com/HamedFathi/JsonExtended</PackageProjectUrl>
     <RepositoryUrl>https://github.com/HamedFathi/JsonExtended</RepositoryUrl>
@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="5.0.2" />
+    <PackageReference Include="System.Text.Json" Version="6.0.1" />
   </ItemGroup>
 
 </Project>

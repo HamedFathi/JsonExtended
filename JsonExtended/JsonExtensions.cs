@@ -1,6 +1,10 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System;
+using System.IO;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Linq;
 
 namespace JsonExtended
 {
@@ -33,6 +37,89 @@ namespace JsonExtended
                 WriteIndented = true
             });
         }
+        public static string ToFormattedJson(this string jsonText)
+        {
+            jsonText = jsonText.Trim().Trim(',');
+            var parsedJson = JsonDocument.Parse(jsonText, new JsonDocumentOptions() { AllowTrailingCommas = true });
+            var result = JsonSerializer.Serialize(parsedJson, new JsonSerializerOptions { WriteIndented = true });
+            return result;
+        }
+
+        public static JsonElement ToJsonElement(this JsonNode jsonNode)
+        {
+            JsonElement element = JsonSerializer.Deserialize<JsonElement>(jsonNode);
+            return element;
+        }
+
+        public static IEnumerable<string> GetPaths(this JsonDocument jsonDocument)
+        {
+            var jsonElement = jsonDocument.RootElement;
+            var result = jsonElement.GetKeys().Select(x => x.Substring(0, x.LastIndexOfAny(new[] { '-' })));
+            return result;
+        }
+
+        public static IEnumerable<string> GetPaths(this JsonElement jsonElement)
+        {
+            var result = jsonElement.GetKeys().Select(x => x.Substring(0, x.LastIndexOfAny(new[] { '-' })));
+            return result;
+        }
+
+        public static IEnumerable<string> GetKeys(this JsonDocument jsonDocument)
+        {
+            var jsonElement = jsonDocument.RootElement;
+            return jsonElement.GetKeys();
+        }
+        public static IEnumerable<string> GetKeys(this JsonElement jsonElement)
+        {
+            var queu = new Queue<(string ParentPath, JsonElement element)>();
+            queu.Enqueue(("", jsonElement));
+            while (queu.Any())
+            {
+                var (parentPath, element) = queu.Dequeue();
+                switch (element.ValueKind)
+                {
+                    case JsonValueKind.Object:
+                        parentPath = parentPath == ""
+                            ? "$."
+                            : parentPath + ".";
+                        foreach (var nextEl in element.EnumerateObject())
+                        {
+                            queu.Enqueue(($"{parentPath}{nextEl.Name}", nextEl.Value));
+                        }
+                        yield return parentPath.Trim('.') + "-object";
+                        break;
+                    case JsonValueKind.Array:
+                        foreach (var (nextEl, i) in element.EnumerateArray().Select((jsonElement, i) => (jsonElement, i)))
+                        {
+                            if (string.IsNullOrEmpty(parentPath))
+                                parentPath = "$.";
+                            queu.Enqueue(($"{parentPath}[{i}]", nextEl));
+                        }
+                        yield return parentPath.Trim('.') + "-array"; ;
+                        break;
+                    case JsonValueKind.String:
+                        var isDate = DateTime.TryParse(element.ToString(), out _);
+                        var type = isDate ? "-date" : "-string";
+                        yield return parentPath.Trim('.') + type;
+                        break;
+                    case JsonValueKind.Number:
+                        yield return parentPath.Trim('.') + "-number"; ;
+                        break;
+                    case JsonValueKind.Undefined:
+                        yield return parentPath.Trim('.') + "-undefined";
+                        break;
+                    case JsonValueKind.Null:
+                        yield return parentPath.Trim('.') + "-null";
+                        break;
+                    case JsonValueKind.True:
+                    case JsonValueKind.False:
+                        yield return parentPath.Trim('.') + "-boolean"; ;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+        }
 
         public static string ToJson<T>(this T obj, JsonSerializerOptions options = null)
         {
@@ -51,5 +138,7 @@ namespace JsonExtended
                 return sr.ReadToEnd();
             }
         }
+
+
     }
 }
