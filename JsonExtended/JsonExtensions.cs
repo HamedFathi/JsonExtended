@@ -121,6 +121,25 @@ namespace JsonExtended
             }
         }
 
+        public static bool? IsSwaggerJson(string swaggerJsonText)
+        {
+            try
+            {
+                var parsedJson = JsonNode.Parse(swaggerJsonText);
+                var paths = parsedJson["paths"];
+                var openapi = parsedJson["openapi"];
+                var swagger = parsedJson["swagger"];
+                if (paths != null && (openapi != null || swagger != null))
+                    return true;
+
+                return false;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         public static string ToJson<T>(this T obj, JsonSerializerOptions options = null)
         {
             return JsonSerializer.Serialize(obj, options);
