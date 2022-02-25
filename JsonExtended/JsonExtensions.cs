@@ -10,6 +10,47 @@ namespace JsonExtended
 {
     public static class JsonExtensions
     {
+        public static JsonNode ToJsonNode(this JsonElement jsonElement)
+        {
+            var node = jsonElement.Deserialize<JsonNode>();
+            return node;
+        }
+
+        public static JsonObject ToJsonObject(this JsonElement jsonElement)
+        {
+            var obj = jsonElement.Deserialize<JsonObject>();
+            return obj;
+        }
+
+        public static JsonArray ToJsonArray(this JsonElement jsonElement)
+        {
+            var array = jsonElement.Deserialize<JsonArray>();
+            return array;
+        }
+
+        public static JsonObject ToJsonObject(this JsonNode jsonNode)
+        {
+            try
+            {
+                return jsonNode.AsObject();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public static JsonArray ToJsonArray(this JsonNode jsonNode)
+        {
+            try
+            {
+                return jsonNode.AsArray();
+            }
+            catch
+            {
+                return null;
+            }
+        }
         public static T Deserialize<T>(this byte[] data, JsonSerializerOptions options = null)
         {
             return JsonSerializer.Deserialize<T>(data.ToText(), options);
@@ -47,7 +88,7 @@ namespace JsonExtended
 
         public static JsonElement ToJsonElement(this JsonNode jsonNode)
         {
-            JsonElement element = JsonSerializer.Deserialize<JsonElement>(jsonNode);
+            JsonElement element = jsonNode.Deserialize<JsonElement>();
             return element;
         }
 
@@ -71,11 +112,11 @@ namespace JsonExtended
         }
         public static IEnumerable<string> GetKeys(this JsonElement jsonElement)
         {
-            var queu = new Queue<(string ParentPath, JsonElement element)>();
-            queu.Enqueue(("", jsonElement));
-            while (queu.Any())
+            var queue = new Queue<(string ParentPath, JsonElement element)>();
+            queue.Enqueue(("", jsonElement));
+            while (queue.Any())
             {
-                var (parentPath, element) = queu.Dequeue();
+                var (parentPath, element) = queue.Dequeue();
                 switch (element.ValueKind)
                 {
                     case JsonValueKind.Object:
@@ -84,16 +125,16 @@ namespace JsonExtended
                             : parentPath + ".";
                         foreach (var nextEl in element.EnumerateObject())
                         {
-                            queu.Enqueue(($"{parentPath}{nextEl.Name}", nextEl.Value));
+                            queue.Enqueue(($"{parentPath}{nextEl.Name}", nextEl.Value));
                         }
                         yield return parentPath.Trim('.') + "-object";
                         break;
                     case JsonValueKind.Array:
-                        foreach (var (nextEl, i) in element.EnumerateArray().Select((jsonElement, i) => (jsonElement, i)))
+                        foreach (var (nextEl, i) in element.EnumerateArray().Select((js, i) => (js, i)))
                         {
                             if (string.IsNullOrEmpty(parentPath))
                                 parentPath = "$.";
-                            queu.Enqueue(($"{parentPath}[{i}]", nextEl));
+                            queue.Enqueue(($"{parentPath}[{i}]", nextEl));
                         }
                         yield return parentPath.Trim('.') + "-array"; ;
                         break;
@@ -121,18 +162,26 @@ namespace JsonExtended
             }
         }
 
-        public static bool? IsSwaggerJson(string swaggerJsonText)
+        public static bool? IsOpenApiDocument(string swaggerJsonText)
         {
             try
             {
                 var parsedJson = JsonNode.Parse(swaggerJsonText);
-                var paths = parsedJson["paths"];
-                var openapi = parsedJson["openapi"];
-                var swagger = parsedJson["swagger"];
-                if (paths != null && (openapi != null || swagger != null))
-                    return true;
 
-                return false;
+                var openapi = parsedJson?["openapi"];
+                var swagger = parsedJson?["swagger"];
+                var info = parsedJson?["info"];
+                var title = parsedJson?["info"]?["title"];
+                var version = parsedJson?["info"]?["version"];
+                var paths = parsedJson?["paths"];
+
+                var status = (openapi != null || swagger != null)
+                             && info != null
+                             && version != null
+                             && paths != null
+                             && title != null;
+
+                return status;
             }
             catch
             {
@@ -152,10 +201,8 @@ namespace JsonExtended
 
         private static string ToText(this Stream @this)
         {
-            using (var sr = new StreamReader(@this, Encoding.UTF8))
-            {
-                return sr.ReadToEnd();
-            }
+            using var sr = new StreamReader(@this, Encoding.UTF8);
+            return sr.ReadToEnd();
         }
 
 
