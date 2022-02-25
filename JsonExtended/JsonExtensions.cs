@@ -16,6 +16,42 @@ namespace JsonExtended
             return node;
         }
 
+        public static T FromJson<T>(this string jsonText, JsonSerializerOptions options = null)
+        {
+            return JsonSerializer.Deserialize<T>(jsonText, options);
+        }
+        public static string ToJson<T>(this T obj, JsonSerializerOptions options = null)
+        {
+            return JsonSerializer.Serialize(obj, options);
+        }
+
+        public static dynamic ToDynamic(this string jsonText)
+        {
+            return JsonSerializer.Deserialize<dynamic>(jsonText);
+        }
+
+        public static object ToObject(this string jsonText)
+        {
+            return JsonSerializer.Deserialize<object>(jsonText);
+        }
+
+        public static string GetJsonPropertyValue(this string jsonText, string propertyName)
+        {
+            return string.IsNullOrEmpty(jsonText) ? null : jsonText.ToJsonNode()?[propertyName]?.AsValue().ToString();
+        }
+
+        public static JsonElement ToJsonElement(this JsonNode jsonNode)
+        {
+            var element = jsonNode.Deserialize<JsonElement>();
+            return element;
+        }
+
+        public static JsonNode ToJsonNode(this string json)
+        {
+            var node = JsonNode.Parse(json);
+            return node;
+        }
+
         public static JsonObject ToJsonObject(this JsonElement jsonElement)
         {
             var obj = jsonElement.Deserialize<JsonObject>();
@@ -61,16 +97,6 @@ namespace JsonExtended
             return JsonSerializer.Deserialize<T>(stream.ToText(), options);
         }
 
-        public static T FromJson<T>(this string jsonText, JsonSerializerOptions options = null)
-        {
-            return JsonSerializer.Deserialize<T>(jsonText, options);
-        }
-
-        public static dynamic ToDynamic(this string jsonText)
-        {
-            return JsonSerializer.Deserialize<dynamic>(jsonText);
-        }
-
         public static string ToIndentedJson<T>(this T obj)
         {
             return JsonSerializer.Serialize(obj, new JsonSerializerOptions()
@@ -84,12 +110,6 @@ namespace JsonExtended
             var parsedJson = JsonDocument.Parse(jsonText, new JsonDocumentOptions() { AllowTrailingCommas = true });
             var result = JsonSerializer.Serialize(parsedJson, new JsonSerializerOptions { WriteIndented = true });
             return result;
-        }
-
-        public static JsonElement ToJsonElement(this JsonNode jsonNode)
-        {
-            JsonElement element = jsonNode.Deserialize<JsonElement>();
-            return element;
         }
 
         public static IEnumerable<string> GetPaths(this JsonDocument jsonDocument)
@@ -187,11 +207,6 @@ namespace JsonExtended
             {
                 return null;
             }
-        }
-
-        public static string ToJson<T>(this T obj, JsonSerializerOptions options = null)
-        {
-            return JsonSerializer.Serialize(obj, options);
         }
 
         private static string ToText(this byte[] bytes)
