@@ -25,14 +25,14 @@ namespace JsonExtended
             return JsonSerializer.Serialize(obj, options);
         }
 
-        public static dynamic ToDynamic(this string jsonText)
+        public static dynamic ToDynamic(this string jsonText, JsonSerializerOptions options = null)
         {
-            return JsonSerializer.Deserialize<dynamic>(jsonText);
+            return JsonSerializer.Deserialize<dynamic>(jsonText, options);
         }
 
-        public static object ToObject(this string jsonText)
+        public static object ToObject(this string jsonText, JsonSerializerOptions options = null)
         {
-            return JsonSerializer.Deserialize<object>(jsonText);
+            return JsonSerializer.Deserialize<object>(jsonText, options);
         }
 
         public static string GetJsonPropertyValue(this string jsonText, string propertyName)
