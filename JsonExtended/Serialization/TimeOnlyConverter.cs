@@ -1,40 +1,35 @@
-﻿#nullable enable
-#if NET6_0_OR_GREATER
-
-using System;
+﻿using System;
 using System.Text.Json.Serialization;
 using System.Text.Json;
 
-namespace JsonExtended
+namespace JsonExtended.Serialization
 {
     // var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
     // options.Converters.Add(new DateOnlyConverter());
     // options.Converters.Add(new TimeOnlyConverter());
 
-    public class DateOnlyConverter : JsonConverter<DateOnly>
+    public class TimeOnlyConverter : JsonConverter<TimeOnly>
     {
         private readonly string serializationFormat;
 
-        public DateOnlyConverter() : this(null)
+        public TimeOnlyConverter() : this(null)
         {
         }
 
-        public DateOnlyConverter(string? serializationFormat)
+        public TimeOnlyConverter(string serializationFormat)
         {
-            this.serializationFormat = serializationFormat ?? "yyyy-MM-dd";
+            this.serializationFormat = serializationFormat ?? "HH:mm:ss.fff";
         }
 
-        public override DateOnly Read(ref Utf8JsonReader reader,
+        public override TimeOnly Read(ref Utf8JsonReader reader,
                                 Type typeToConvert, JsonSerializerOptions options)
         {
             var value = reader.GetString();
-            return DateOnly.Parse(value!);
+            return TimeOnly.Parse(value!);
         }
 
-        public override void Write(Utf8JsonWriter writer, DateOnly value,
+        public override void Write(Utf8JsonWriter writer, TimeOnly value,
                                             JsonSerializerOptions options)
             => writer.WriteStringValue(value.ToString(serializationFormat));
     }
 }
-
-#endif
